@@ -17,23 +17,29 @@ static const CGFloat merge = 50;
 static const NSInteger base_tag = 1234;
 
 @interface SYHAlertViewController ()
-
-@property(nonatomic, strong)UIViewController*   targetVC;
-
-@property(nonatomic, copy)NSString*                             alertTitle;
+/** 展示alert view 的目标vc */
+@property(nonatomic, strong)UIViewController*            targetVC;
+/** alert 窗口的title */
+@property(nonatomic, copy)NSString*                      alertTitle;
+/** alert 窗口需要展示的内容 */
 @property(nonatomic, copy)NSString*                      message;
+/** alert view的类型,分为有标题的 和 没有标题的 */
 @property(nonatomic)SYHAlertViewControllerType           style;
+/** alert 弹窗保存操作按钮的 回调block */
 @property(nonatomic, strong)NSArray<SYHAlertActionModel*>      *alertActions;
 
 
 //界面相关
-@property(nonatomic, assign)BOOL                notifiKeyboardHide;
-@property(nonatomic, strong)UIView*             operateView; //操作视图
+/** 操作试图 */
+@property(nonatomic, strong)UIView*             operateView;
+/** 按钮的容器view */
 @property(nonatomic, strong)UIView*             btnsView;
 
 @end
 
 @implementation SYHAlertViewController
+
+#pragma mark - initialization
 
 + (instancetype)alertViewWithTitle:(NSString *)title message:(NSString *)message showViewController:(UIViewController*)viewController preferredStyle:(SYHAlertViewControllerType)preferredStyle alertActions:(NSArray<SYHAlertActionModel*>*)alertActions{
     
@@ -43,12 +49,12 @@ static const NSInteger base_tag = 1234;
 - (instancetype)initWithTitle:(NSString *)title message:(NSString *)message showViewController:(UIViewController*)viewController preferredStyle:(SYHAlertViewControllerType)preferredStyle alertActions:(NSArray<SYHAlertActionModel*>*)alertActions
 {
     if (self = [super init]) {
-        self.alertTitle = title;
-        self.message = message;
-        self.style = preferredStyle;
+        _alertTitle = [title copy];
+        _message = [message copy];
+        _style = preferredStyle;
         
-        self.targetVC = viewController;
-        self.alertActions = alertActions;
+        _targetVC = viewController;
+        _alertActions = alertActions;
         
         self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
         self.modalPresentationStyle = UIModalPresentationOverFullScreen;
@@ -56,9 +62,21 @@ static const NSInteger base_tag = 1234;
     return self;
 }
 
+- (instancetype)init
+{
+    SYHAlertActionModel *model = [SYHAlertActionModel actionWithTitle:@"确认" style:SYHAlertActionConfirm actionHandler:nil];
+    if (self = [self initWithTitle:@"" message:@"请不要直接调用init方法,转而使用全能初始化方法" showViewController:nil preferredStyle:SYHAlertViewControllerWithoutTitle alertActions:@[model]]) {
+        
+    }
+    
+    return self;
+}
+
+#pragma mark - life cycle
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor colorWithHexValue:ALERT_BACKGROUND_COLOR];
+    self.view.backgroundColor = [UIColor syh_colorWithHexValue:ALERT_BACKGROUND_COLOR];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -66,17 +84,18 @@ static const NSInteger base_tag = 1234;
     [super viewWillAppear:animated];
     
     //必须在这里，否则动画无效
-    [self constructUI];
+    [self syhP_constructUI];
 }
 
+#pragma mark - construc UI
 
-- (void)constructUI
+- (void)syhP_constructUI
 {
     //操作区背景
     _operateView = [[UIView alloc] init];
     _operateView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:_operateView];
-    [self shakeToShow:_operateView];
+    [self syhP_shakeToShow:_operateView];
     CGFloat operateViewWidth = SCREEN_WIDTH - 2 * merge;
     [_operateView makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(self.view);
@@ -84,14 +103,14 @@ static const NSInteger base_tag = 1234;
     }];
     
     //标题
-    if (!self.alertTitle) {
+    if (!_alertTitle) {
         self.alertTitle = @"";
     }
     
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = self.alertTitle;
     titleLabel.font = [UIFont systemFontOfSize:16];
-    titleLabel.textColor = [UIColor colorWithHexValue:MIAN_CONTENT_FONT_COLOR];
+    titleLabel.textColor = [UIColor syh_colorWithHexValue:MIAN_CONTENT_FONT_COLOR];
     titleLabel.textAlignment = NSTextAlignmentCenter;
     [_operateView addSubview:titleLabel];
     
@@ -100,7 +119,7 @@ static const NSInteger base_tag = 1234;
     [_operateView addSubview:lineImage];
     
     //显示标题
-    if (self.style == SYHAlertViewControllerWithTitle ) {
+    if (_style == SYHAlertViewControllerWithTitle ) {
         [titleLabel makeConstraints:^(MASConstraintMaker *make) {
             make.top.left.right.equalTo(_operateView);
             make.height.equalTo(AdaptedHeight(41));
@@ -130,7 +149,7 @@ static const NSInteger base_tag = 1234;
     }
     
     UIView *messageContentView = [[UIView alloc] init];
-    messageContentView.backgroundColor = [UIColor colorWithHexValue:@"0xffffffff"];
+    messageContentView.backgroundColor = [UIColor syh_colorWithHexValue:@"0xffffffff"];
     [_operateView addSubview:messageContentView];
     [messageContentView makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(lineImage.bottom);
@@ -141,7 +160,7 @@ static const NSInteger base_tag = 1234;
     UILabel *messageLabel = [[UILabel alloc] init];
     messageLabel.text = self.message;
     messageLabel.font = [UIFont systemFontOfSize:14];
-    messageLabel.textColor = [UIColor colorWithHexValue:MIAN_CONTENT_FONT_COLOR];
+    messageLabel.textColor = [UIColor syh_colorWithHexValue:MIAN_CONTENT_FONT_COLOR];
     messageLabel.textAlignment = NSTextAlignmentCenter;
     messageLabel.numberOfLines = 0;
     [messageContentView addSubview:messageLabel];
@@ -159,7 +178,7 @@ static const NSInteger base_tag = 1234;
     //确认 取消 按键区域
     UIView *btnsView = [[UIView alloc] init];
     self.btnsView = btnsView;
-    btnsView.backgroundColor = [UIColor colorWithHexValue:BACKGROUND_VIEW_GRAY];
+    btnsView.backgroundColor = [UIColor syh_colorWithHexValue:BACKGROUND_VIEW_GRAY];
     [_operateView addSubview:btnsView];
     [btnsView makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(messageContentView.bottom);
@@ -180,7 +199,7 @@ static const NSInteger base_tag = 1234;
         UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:action.actionTitle forState:UIControlStateNormal];
         [button.titleLabel setFont:[UIFont systemFontOfSize:16]];
-        [button setTitleColor:[UIColor colorWithHexValue:@"0xffffffff"] forState:UIControlStateNormal];
+        [button setTitleColor:[UIColor syh_colorWithHexValue:@"0xffffffff"] forState:UIControlStateNormal];
         CGRect rect = CGRectMake(0, 0, 10, 70);
         UIImage* normalImage = [ImageUtils createRectImageByColor:normalColor andFrame:rect];
         [button setBackgroundImage:normalImage forState:UIControlStateNormal];
@@ -191,26 +210,26 @@ static const NSInteger base_tag = 1234;
         [button.layer setMasksToBounds:YES];
         
         button.tag = base_tag + i;
-        [button addTarget:self action:@selector(onBottomActionBtn:) forControlEvents:UIControlEventTouchUpInside];
-        [self.btnsView addSubview:button];
+        [button addTarget:self action:@selector(syhP_onBottomActionBtn:) forControlEvents:UIControlEventTouchUpInside];
+        [_btnsView addSubview:button];
         [button makeConstraints:^(MASConstraintMaker *make) {
             make.left.equalTo(lastBtn ? lastBtn.right : self.btnsView.left);
             make.width.equalTo(width);
-            make.height.equalTo(self.btnsView);
-            make.centerY.equalTo(self.btnsView);
+            make.height.equalTo(_btnsView);
+            make.centerY.equalTo(_btnsView);
         }];
         lastBtn = button;
     }
 }
 
-- (void)onBottomActionBtn:(UIButton *)sender
+- (void)syhP_onBottomActionBtn:(UIButton *)sender
 {
     //防止多次点击
     sender.enabled = NO;
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self syhP_removeAlertView];
     
     NSInteger index = sender.tag - base_tag;
-    SYHAlertActionModel *action = self.alertActions[index];
+    SYHAlertActionModel *action = _alertActions[index];
     if (action.actionHandler) {
         action.actionHandler();
     }
@@ -218,7 +237,7 @@ static const NSInteger base_tag = 1234;
 
 #pragma mark - animatioin
 
-- (void)shakeToShow:(UIView *)aView
+- (void)syhP_shakeToShow:(UIView *)aView
 {
     CAKeyframeAnimation * popAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
     popAnimation.duration = 0.35;
@@ -234,16 +253,12 @@ static const NSInteger base_tag = 1234;
 }
 
 
-- (void)removeAlertView
+- (void)syhP_removeAlertView
 {
-    [UIView animateWithDuration:0.15 animations:^{
+    [UIView animateWithDuration:0.25 animations:^{
         _operateView.alpha = 0;
-        _operateView.transform = CGAffineTransformMakeScale(0.1, 0.1);
+        _operateView.transform = CGAffineTransformMakeScale(0.7, 0.7);
     } completion:^(BOOL finished) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
-        if (_notifiKeyboardHide) {
-            [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
-        }
         [self dismissViewControllerAnimated:YES completion:nil];
     }];
 }

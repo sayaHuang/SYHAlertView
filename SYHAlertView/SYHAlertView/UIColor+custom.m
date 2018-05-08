@@ -10,7 +10,7 @@
 
 @implementation UIColor (custom)
 
-+(UIColor*)colorWithHexValue:(NSString *)hexStr
++(UIColor*)syh_colorWithHexValue:(NSString *)hexStr
 {
     NSUInteger hexValue = strtoul([hexStr UTF8String], 0, 16);
     if(hexValue == ERANGE)

@@ -10,6 +10,6 @@
 
 @interface UIColor (custom)
 
-+(UIColor*)colorWithHexValue:(NSString *)hexStr;
++(UIColor*)syh_colorWithHexValue:(NSString *)hexStr;
 
 @end
