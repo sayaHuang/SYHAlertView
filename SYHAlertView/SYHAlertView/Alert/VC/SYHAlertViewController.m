@@ -263,4 +263,17 @@ static const NSInteger base_tag = 1234;
     }];
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@: %p, %@>",
+            [self class],
+            self,
+            @{@"targetVC":_targetVC,
+              @"alertTitle":_alertTitle,
+              @"message":_message,
+              @"style":@(_style),
+              @"alertActions":_alertTitle,
+              }];
+}
+
 @end

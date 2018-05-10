@@ -25,4 +25,15 @@
     return [[self alloc] initWithTitle:title style:style actionHandler:actionHandler];
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@: %p, %@>",
+            [self class],
+            self,
+            @{@"alertTitle":_actionTitle,
+              @"style":@(_style),
+              @"actionHandler":_actionHandler,
+              }];
+}
+
 @end
